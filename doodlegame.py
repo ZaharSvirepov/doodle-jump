@@ -31,13 +31,17 @@ class Player(GameSprite):
         if keys[K_RIGHT] and self.rect.x < 350:
             self.rect.x += self.speed_x
         if keys[K_SPACE] and collider == True:
-            self.speed_y = 20
+            self.speed_y = 18
             self.rect.y -= self.speed_y
+            jump_sound.play()
         if collider == True:
             self.rect.y += self.speed
         if collider == False:
             self.speed_y -= 1
             self.rect.y -= self.speed_y
+        if self.rect.y >= 850:
+            global finish
+            finish = True
 
 #TODO Создаём класс платформ
 class Platforms(GameSprite):
@@ -58,9 +62,19 @@ background = transform.scale(image.load("background.png"), (400, 800))
 game = True
 jump = False
 collider = True
-fiawe = 1
+finish = False
+fiawe = 3
+score = 0
+mixer.init()
+jump_sound = mixer.Sound('jump.ogg')
+mixer.music.load('music.ogg')
+mixer.music.play()
+font.init()
+font1 = font.SysFont('Arial', 40)
+lose = font1.render('Ты проиграл!', True, (180, 0, 0))
+scores = font1.render(str(score), False, (180, 0, 0))
 nums = [130, 260, 390, 520, 650, 780]
-doodle = Player('doodle.png', 175, 605, 50, 50, fiawe, 20, 4)
+doodle = Player('doodle.png', 175, 605, 50, 50, fiawe, 18, 4)
 platforms = sprite.Group()
 clock = time.Clock()
 FPS = 60
@@ -73,17 +87,18 @@ while game:
     for e in event.get():
         if e.type == QUIT:
             game = False
-    
-    collider = False
-    window.blit(background, (0, 0))
-    doodle.reset()
-    platforms.draw(window)
+    if finish == False:
+        collider = False
+        window.blit(background, (0, 0))
+        doodle.reset()
+        platforms.draw(window)
+        if sprite.spritecollide(doodle, platforms, False):
+            collider = True
+        doodle.update()
+        platforms.update()
 
-    if sprite.spritecollide(doodle, platforms, False):
-        collider = True
-
-    doodle.update()
-    platforms.update()
-
-    display.update() 
-    clock.tick(FPS)
+        display.update() 
+        clock.tick(FPS)
+    if finish == True:
+        window.blit(lose, (100, 360))
+        display.update()
